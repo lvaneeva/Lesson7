@@ -1,6 +1,5 @@
 package lesson7.project;
 
-import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,7 +7,6 @@ import java.util.List;
 public class DatabaseRepositorySQLiteImpl implements DatabaseRepository {
     // load JDBC driver
     static {
-
         try {
             Class.forName("org.sqlite.JDBC");
         } catch (ClassNotFoundException e) {
@@ -60,8 +58,6 @@ public class DatabaseRepositorySQLiteImpl implements DatabaseRepository {
 
     @Override
      public List<WeatherData> getAllSavedData() throws SQLException {
-   // public void getAllSavedData() throws SQLException {
-        // throw new IOException("Not implemented exception");
         ArrayList<WeatherData> arrayList;
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement();

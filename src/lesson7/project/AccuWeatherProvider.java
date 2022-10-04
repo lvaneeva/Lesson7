@@ -154,9 +154,7 @@ public class AccuWeatherProvider implements WeatherProvider {
     }
 
     public void getAllFromDb() throws IOException {
-
         try {
-
             databaseRepositorySQLite.getAllSavedData();
         } catch (SQLException e) {
             e.printStackTrace();
