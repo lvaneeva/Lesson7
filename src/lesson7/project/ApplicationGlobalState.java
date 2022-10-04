@@ -4,7 +4,8 @@ public final class ApplicationGlobalState {
 
     private static ApplicationGlobalState INSTANCE;
     private String selectedCity = null;
-   private final String API_KEY = "0d1tNZJPfzzT3qGokM18FGGxAUpt7hpj";
+   private final String API_KEY = "B9ZwmXuOpCmBlYCtAFMASK9mjt6TIAXm";
+   private final String DB_FILENAME = "application.db";
     private ApplicationGlobalState() {
     }
 
@@ -27,6 +28,10 @@ public final class ApplicationGlobalState {
 
     public String getApiKey() {
         return this.API_KEY;
+    }
+
+    public String getDbFileName() {
+        return this.DB_FILENAME;
     }
 }
 

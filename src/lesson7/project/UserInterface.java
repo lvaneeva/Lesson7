@@ -5,6 +5,7 @@ import java.util.Scanner;
 
 public class UserInterface {
     private final Controller controller = new Controller();
+   // private final Controller controller2 = new Controller();
 
     public void runApplication() {
         Scanner scanner = new Scanner(System.in);
@@ -20,6 +21,10 @@ public class UserInterface {
             String result = scanner.nextLine();
 
             checkIsExit(result);
+            System.out.println("Введите ответ: 3- чтение из базы всех данных, " +
+                    "выход (exit) - завершить работу");
+            String resultR = scanner.nextLine();
+            checkIsExit(resultR);
 
             try {
                 validateUserInput(result);
@@ -30,6 +35,11 @@ public class UserInterface {
 
             try {
                 notifyController(result);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                notifyController(resultR);
             } catch (IOException e) {
                 e.printStackTrace();
             }

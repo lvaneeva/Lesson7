@@ -7,11 +7,16 @@ import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+
 import java.io.IOException;
 import java.io.StringReader;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class AccuWeatherProvider implements WeatherProvider {
     private static final String BASE_HOST = "dataservice.accuweather.com";
@@ -23,6 +28,8 @@ public class AccuWeatherProvider implements WeatherProvider {
     private final OkHttpClient client = new OkHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private String cityName;
+    public WeatherData weatherData;
+    private DatabaseRepositorySQLiteImpl databaseRepositorySQLite;
 
     @Override
     public void getWeather(Periods periods) throws IOException {
@@ -54,6 +61,18 @@ public class AccuWeatherProvider implements WeatherProvider {
             objectMapper.configure(DeserializationFeature.USE_JAVA_ARRAY_FOR_JSON_ARRAY, true);
             WeatherResponse[] weatherResponse = objectMapper.readValue(reader, WeatherResponse[].class);
             System.out.println("В городе " + cityName + " на дату " + weatherResponse[0].getLocalObservationDateTime().substring(0, 10) + " ожидается " + weatherResponse[0].getWeatherText() + ", температура - " + weatherResponse[0].getTemperature().getMetric().getValue());
+            //   Locale locale = Locale.getDefault();
+            //     SimpleDateFormat dateFormat1 = new SimpleDateFormat("yyyy-MM-dd", locale);
+            //    Date date1;
+            // date1=dateFormat1.parse(weatherResponse[0].getLocalObservationDateTime().substring(0, 10));
+            weatherData = new WeatherData(cityName, weatherResponse[0].getLocalObservationDateTime().substring(0, 10), weatherResponse[0].getWeatherText(), weatherResponse[0].getTemperature().getMetric().getValue());
+            databaseRepositorySQLite = new DatabaseRepositorySQLiteImpl();
+            databaseRepositorySQLite.createTableIfNotExists();
+            try {
+                databaseRepositorySQLite.saveWeatherData(weatherData);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
 
         } else if (periods.equals(Periods.FIVE_DAYS)) {
             HttpUrl url = new HttpUrl.Builder()
@@ -64,7 +83,7 @@ public class AccuWeatherProvider implements WeatherProvider {
                     .addPathSegment("daily")
                     .addPathSegment("5day")
                     .addPathSegment(cityKey)
-                    .addQueryParameter("apikey", "0d1tNZJPfzzT3qGokM18FGGxAUpt7hpj")
+                    .addQueryParameter("apikey", "B9ZwmXuOpCmBlYCtAFMASK9mjt6TIAXm")
                     .addQueryParameter("language", "ru-ru")
                     .addQueryParameter("metric", "true")
                     .build();
@@ -82,9 +101,17 @@ public class AccuWeatherProvider implements WeatherProvider {
             StringReader reader = new StringReader(myresponse);
             ObjectMapper objectMapper = new ObjectMapper();
             Example example = objectMapper.readValue(reader, Example.class);
+            databaseRepositorySQLite = new DatabaseRepositorySQLiteImpl();
+            databaseRepositorySQLite.createTableIfNotExists();
 
             for (DailyForecast dailyForecastList : example.getDailyForecasts()) {
                 System.out.println("В городе " + cityName + " на дату " + dailyForecastList.getDate().substring(0, 10) + " ожидается " + dailyForecastList.getDay().getIconPhrase() + ", температура - " + dailyForecastList.getTemperature().getMaximum().getValue());
+                weatherData = new WeatherData(cityName, dailyForecastList.getDate().substring(0, 10), dailyForecastList.getDay().getIconPhrase(), dailyForecastList.getTemperature().getMaximum().getValue());
+                try {
+                    databaseRepositorySQLite.saveWeatherData(weatherData);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }
@@ -124,6 +151,16 @@ public class AccuWeatherProvider implements WeatherProvider {
         } else throw new IOException("Server returns 0 cities");
 
         return objectMapper.readTree(jsonResponse).get(0).at("/Key").asText();
+    }
+
+    public void getAllFromDb() throws IOException {
+
+        try {
+
+            databaseRepositorySQLite.getAllSavedData();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
 }
